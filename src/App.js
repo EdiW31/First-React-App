@@ -1,60 +1,45 @@
-import './App.css';
-import { Component } from 'react';
-import CardList from './Components/card-list/card-list.component';
-import SearchBox from './Components/search-box/searchbox.component.jsx'
+import { useState, useEffect } from "react";
 
-class App extends Component {
-  //constructor
-  constructor(){
-    console.log("constructor")
-    super()
-    //declaram state ul gol ca sa poata fii umplut de sursa, de api
-    this.state = {
-      monsters:[],
-      searchField: ""
-    }
-  }
+import CardList from "./Components/card-list/card-list.component";
+import SearchBox from "./Components/search-box/searchbox.component";
+import "./App.css";
 
-  //did mount este pentru fetching de pe un site sau ceva
-  componentDidMount(){
-    fetch('https://jsonplaceholder.typicode.com/users')
-      //convertim datele in date json prin nume.json()
-      .then((response)=> response.json())
-      //setam state ul cu noile lucruri din api
-      .then((users)=> this.setState(
-        ()=>{
-        return{monsters: users}
-        }
-      ))
-  }
-  
+const App = () => {
+  const [searchField, setSearchField] = useState("");
+  const [monsters, setMonsters] = useState([]);
+  const [filteredMonsters, setFilterMonsters] = useState(monsters);
 
-  //metoda clasei
-  onSeachChange = (event)=> {
-    const searchField = event.target.value.toLocaleLowerCase();
-    this.setState(()=>{
-      return {searchField}
-    }) 
-  }
+  useEffect(() => {
+    fetch("https://jsonplaceholder.typicode.com/users")
+      .then((response) => response.json())
+      .then((users) => setMonsters(users));
+  }, []);
 
-  //ce scoatem ca sa fie afisat pe
-  render(){
+  useEffect(() => {
+    const newFilteredMonsters = monsters.filter((monster) => {
+      return monster.name.toLocaleLowerCase().includes(searchField);
+    });
 
-    const{monsters, searchField}=this.state;
-    const{onSeachChange}=this;
+    setFilterMonsters(newFilteredMonsters);
+  }, [monsters, searchField]);
 
-    const filteredMonsters = monsters.filter((monster)=>{
-      return monster.name.toLocaleLowerCase().includes(searchField)
-    })
-    
-    return (
-      <div className="App">
-        <h1 className='app-title'>My first React App</h1>
-        <SearchBox onChangeHandler={onSeachChange}/>
-        <CardList monsters={filteredMonsters}/>
-      </div>
-    );
-  }
-}
+  const onSearchChange = (event) => {
+    const searchFieldString = event.target.value.toLocaleLowerCase();
+    setSearchField(searchFieldString);
+  };
+
+  return (
+    <div className="App">
+      <h1 className="app-title">Monsters Rolodex</h1>
+
+      <SearchBox
+        className="monsters-search-box"
+        onChangeHandler={onSearchChange}
+        placeholder="search monsters"
+      />
+      <CardList monsters={filteredMonsters} />
+    </div>
+  );
+};
 
 export default App;
